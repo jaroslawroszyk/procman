@@ -4,10 +4,10 @@ use crossterm::event::{
     MouseEventKind,
 };
 use ratatui::{
+    DefaultTerminal, Frame,
     layout::{Constraint, Layout, Rect},
     style::{Color, Style, Stylize},
     widgets::{Axis, Block, Chart, Clear, Dataset, GraphType, Row, Table, TableState},
-    DefaultTerminal, Frame,
 };
 use sysinfo::Signal;
 use sysinfo::{ProcessesToUpdate, System};
@@ -92,12 +92,14 @@ impl App {
             self.cpu.drain(0..self.cpu.len() - max_points);
         }
         let cpu_data: Vec<(f64, f64)> = self.cpu.to_vec();
-        let chart = Chart::new(vec![Dataset::default()
-            .name("CPU Usage")
-            .marker(ratatui::symbols::Marker::Braille)
-            .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::Cyan))
-            .data(&cpu_data)])
+        let chart = Chart::new(vec![
+            Dataset::default()
+                .name("CPU Usage")
+                .marker(ratatui::symbols::Marker::Braille)
+                .graph_type(GraphType::Line)
+                .style(Style::default().fg(Color::Cyan))
+                .data(&cpu_data),
+        ])
         .block(Block::bordered().title("CPU Usage (%)"))
         .x_axis(Axis::default().bounds([
             cpu_data.first().map(|(x, _)| *x).unwrap_or(0.0),
@@ -189,8 +191,7 @@ impl App {
 
     fn render_footer(&self, frame: &mut Frame<'_>, area: Rect) {
         use ratatui::widgets::Paragraph;
-        let help =
-            "[q/Esc] Quit  [s] Toggle Search  [j/k] Move  [d] Kill  [p] Kill by PID  [Enter] Details  [In Search: Esc] Exit Search  [In Details: Esc] Close";
+        let help = "[q/Esc] Quit  [s] Toggle Search  [j/k] Move  [d] Kill  [p] Kill by PID  [Enter] Details  [In Search: Esc] Exit Search  [In Details: Esc] Close";
         let paragraph = Paragraph::new(help).block(Block::bordered().title("Help"));
         frame.render_widget(paragraph, area);
     }
@@ -467,10 +468,10 @@ impl App {
 
         match mouse.kind {
             MouseEventKind::ScrollUp => {
-                if let Some(selected) = self.table_state.selected() {
-                    if selected > 0 {
-                        self.table_state.select(Some(selected - 1));
-                    }
+                if let Some(selected) = self.table_state.selected()
+                    && selected > 0
+                {
+                    self.table_state.select(Some(selected - 1));
                 }
             }
             MouseEventKind::ScrollDown => {
@@ -544,12 +545,12 @@ impl App {
                     .any(|cell| cell.to_lowercase().contains(&text.to_lowercase()))
             })
             .collect();
-        if let Some(selected) = self.table_state.selected() {
-            if selected < filtered.len() {
-                let (pid, _process) = filtered[selected];
-                self.kill_modal = true;
-                self.kill_pid = Some(pid);
-            }
+        if let Some(selected) = self.table_state.selected()
+            && selected < filtered.len()
+        {
+            let (pid, _process) = filtered[selected];
+            self.kill_modal = true;
+            self.kill_pid = Some(pid);
         }
     }
 

@@ -2,7 +2,7 @@
 name = "procman"
 version = "0.1.0"
 authors = ["Jaroslaw Roszyk <roszyk.jarek@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 crossterm = "0.28.1"
